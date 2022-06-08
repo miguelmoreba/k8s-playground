@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels: # Labels are key-value pairs, there can be many of these
+    app: mongo
+spec:
+  replicas: 1 # Just one because is a stateful service
+  selector:
+    matchLabels: # This defines that all pods that match this label (app: mongo) belong to this deployment. 
+      app: mongo
+  template: # This defines the blueprint for the pods
+    metadata:
+      labels: # Labels are key-value pairs, there can be many of these
+        app: mongo
+    spec: # Deployment specific specification
+      containers: # List of containers, although normally it's just one
+      - name: mongo # If there are multiple replicas, each pod would have its own name (mongo-101, mongo-111, etc)
+        image: mongo:5.0 # From docker registry or other registry (elaborate further)
+        ports:
+        - containerPort: 27017 # The port where the container will listen (kinda forwarding the port)
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef: # This is how you reference a secret, in this case, the one we have created (mong-secrer)
+              name: mongo-secret
+              key: mongo-user
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+--- # This could very well be in a different file, but makes sense to have them together (all deployments need services)/ In YAML, you separate with ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service # Defines the endpoint
+spec:
+  selector: # Mechanism to forward the request to the pods (matching on the label of the pods that belong to the service)
+    app: mongo
+  ports:
+    - protocol: TCP
+      port: 27017 # or whatever
+      targetPort: 27017 # same as the container port of the containerPort above
