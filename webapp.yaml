@@ -41,11 +41,11 @@ kind: Service
 metadata:
   name: webapp-service
 spec:
-  type: NodePort # Expose the service to the outside world
+  type: NodePort # Expose the service to the outside world (default type is ClusterIP)
   selector: # Mechanism to forward the request to the pods (matching on the label of the pods that belong to the service)
     app: webapp
   ports:
     - protocol: TCP
       port: 3000 # or whatever, it is the port where the service is exposed
       targetPort: 3000 # same as the container port of the deployment above
-      nodePort: 30100
+      nodePort: 30100 # Port of IP in which it's available to the external world
