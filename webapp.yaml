@@ -1,21 +1,21 @@
-apiVersion: apps/v1
+apiVersion: apps/v1 # Get this from the k8s site
 kind: Deployment
 metadata:
   name: webapp-deployment
-  labels:
+  labels: # Labels are key-value pairs, there can be many of these
     app: webapp
 spec:
-  replicas: 1 # Just one because is a stateful service
+  replicas: 1 # As many as needed since it's a stateless service
   selector:
-    matchLabels:
+    matchLabels: # This defines that all pods that match this label (app: webapp) belong to this deployment. 
       app: webapp
-  template:
+  template: # This defines the blueprint for the pods
     metadata:
-      labels:
+      labels:  # Labels are key-value pairs, there can be many of these
         app: webapp
-    spec:
-      containers:
-      - name: webapp
+    spec: # Deployment specific specification
+      containers: # List of containers, although normally it's just one
+      - name: webapp # If there are multiple replicas, each pod would have its own name (webapp-101, webapp-111, etc)
         image: nanajanashia/k8s-demo-app:v1.0
         ports:
         - containerPort: 3000
@@ -27,22 +27,22 @@ spec:
               key: mongo-user
         - name: USER_PWD
           valueFrom:
-            secretKeyRef:
+            secretKeyRef: 
               name: mongo-secret
               key: mongo-password
         - name: DB_URL
           valueFrom:
-            configMapKeyRef:
+            configMapKeyRef: # This is how you reference a config map key
               name: mongo-config
               key: mongo-url
----
+--- # This could very well be in a different file, but makes sense to have them together (all deployments need services)/ In YAML, you separate with ---
 apiVersion: v1
 kind: Service
 metadata:
   name: webapp-service
 spec:
-  type: NodePort
-  selector:
+  type: NodePort # Expose the service to the outside world
+  selector: # Mechanism to forward the request to the pods (matching on the label of the pods that belong to the service)
     app: webapp
   ports:
     - protocol: TCP
